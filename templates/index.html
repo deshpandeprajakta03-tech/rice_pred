@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Rice Classification</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🌾 Rice Classification System</h1>
+
+    <p>Upload a rice image to predict its class.</p>
+
+    <input
+        type="file"
+        id="imageInput"
+        accept="image/*">
+
+    <br><br>
+
+    <img
+        id="preview"
+        src=""
+        style="display:none;">
+
+    <br>
+
+    <button onclick="predictImage()">
+        Predict
+    </button>
+
+    <div id="result" style="display:none;">
+
+        <h2 id="prediction"></h2>
+
+        <h3 id="confidence"></h3>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Rice Type</th>
+
+                    <th>Probability (%)</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="probabilityTable">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script>
+
+const imageInput = document.getElementById("imageInput");
+
+const preview = document.getElementById("preview");
+
+imageInput.onchange = function(){
+
+    preview.src = URL.createObjectURL(imageInput.files[0]);
+
+    preview.style.display = "block";
+
+};
+
+function predictImage(){
+
+    let file = imageInput.files[0];
+
+    if(!file){
+
+        alert("Please select an image.");
+
+        return;
+
+    }
+
+    let formData = new FormData();
+
+    formData.append("file", file);
+
+    fetch("/predict",{
+
+        method:"POST",
+
+        body:formData
+
+    })
+
+    .then(response=>response.json())
+
+    .then(data=>{
+
+        document.getElementById("result").style.display="block";
+
+        document.getElementById("prediction").innerHTML =
+        "Prediction : " + data.prediction;
+
+        document.getElementById("confidence").innerHTML =
+        "Confidence : " + data.confidence + "%";
+
+        let table = document.getElementById("probabilityTable");
+
+        table.innerHTML = "";
+
+        for(let key in data.probabilities){
+
+            table.innerHTML +=
+
+            `<tr>
+
+                <td>${key}</td>
+
+                <td>${data.probabilities[key]}%</td>
+
+            </tr>`;
+
+        }
+
+    });
+
+}
+
+</script>
+
+</body>
+
+</html>
